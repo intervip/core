@@ -1,5 +1,4 @@
 ﻿using Intervip.Core.Models;
-using Intervip.Core.Models.Clients;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -9,22 +8,9 @@ namespace Intervip.Core.Data;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
-	public DbSet<Accommodation> Accommodations => Set<Accommodation>();
+	public DbSet<Lead> Leads => Set<Lead>();
 	public DbSet<Address> Addresses => Set<Address>();
-	public DbSet<Bandwidth> Bandwidths => Set<Bandwidth>();
-	public DbSet<Building> Buildings => Set<Building>();
-	public DbSet<Client> Clients => Set<Client>();
-	public DbSet<Company> Companies => Set<Company>();
-	public DbSet<Contract> Contracts => Set<Contract>();
-	public DbSet<Employee> Employees => Set<Employee>();
-	public DbSet<Equipment> Equipment => Set<Equipment>();
-	public DbSet<Group> Groups => Set<Group>();
-	public DbSet<Manufacturer> Manufacturers => Set<Manufacturer>();
-	public DbSet<Person> People => Set<Person>();
 	public DbSet<PostalCode> PostalCodes => Set<PostalCode>();
-	public DbSet<Sale> Sales => Set<Sale>();
-	public DbSet<Shaft> Shafts => Set<Shaft>();
-	public DbSet<Storey> Storeys => Set<Storey>();
 
 	public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
@@ -49,17 +35,51 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 		modelBuilder.Entity<IdentityUserToken<string>>(entity =>
 			entity.ToTable("UserTokens", "Identity"));
 
-		// Set contract cost precision and scale
-		modelBuilder.Entity<Contract>(entity =>
-			entity.Property(contract => contract.Cost)
-			.HasPrecision(7, 2));
+		// Set CEP max length to 8 characteres
+		modelBuilder.Entity<PostalCode>()
+			.Property(postalCode => postalCode.Code)
+			.HasMaxLength(8);
+		modelBuilder.Entity<PostalCode>()
+			.HasIndex(postalCode => postalCode.Code)
+			.IsUnique();
+		modelBuilder.Entity<PostalCode>()
+			.Property(postalCode => postalCode.AddedAt)
+			.HasDefaultValueSql("GETUTCDATE()");
 
-		// Set cascade delete relation with employee
-		modelBuilder.Entity<Sale>().HasOne(sale => sale.Salesperson)
-			.WithMany(employee => employee.Sales)
-			.OnDelete(DeleteBehavior.NoAction);
-		modelBuilder.Entity<Sale>().HasOne( sale => sale.Client)
-			.WithMany(client => client.Deals)
-			.OnDelete(DeleteBehavior.NoAction);
+		// Create unique index for addresses
+		modelBuilder.Entity<Address>().HasIndex(address => new
+		{
+			address.Lot,
+			address.Square,
+			address.Number,
+			address.PostalCodeId
+		}).IsUnique();
+		modelBuilder.Entity<Address>()
+			.Property(address => address.PostalCodeId)
+			.IsRequired();
+		modelBuilder.Entity<Address>()
+			.Property(address => address.Lot)
+			.HasMaxLength(4);
+		modelBuilder.Entity<Address>()
+			.Property(address => address.Square)
+			.HasMaxLength(4);
+		modelBuilder.Entity<Address>()
+			.HasCheckConstraint("CK_Address_Number_Complement", 
+			 "[Number] IS NOT NULL OR ([Square] IS NOT NULL AND [Lot] IS NOT NULL)");
+		modelBuilder.Entity<Address>()
+			.Property(address => address.AddedAt)
+			.HasDefaultValueSql("GETUTCDATE()");
+
+		// Create unique index for leads
+		modelBuilder.Entity<Lead>().HasIndex(lead => new
+		{
+			lead.Name,
+			lead.Email,
+			lead.PhoneNumber,
+			lead.AddressId
+		}).IsUnique();
+		modelBuilder.Entity<Lead>()
+			.Property(lead => lead.AddedAt)
+			.HasDefaultValueSql("GETUTCDATE()");
 	}
 }

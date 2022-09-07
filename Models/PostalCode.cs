@@ -1,25 +1,15 @@
 ﻿using Intervip.Core.Enums;
 
-using System.ComponentModel.DataAnnotations;
-
 namespace Intervip.Core.Models;
 
-public class PostalCode
+public partial class PostalCode
 {
-	[MaxLength(7)]
-	public string Id { get; set; }
-	public string Street { get; set; }
-	public string Neighbourhood { get; set; }
-	public string City { get; set; }
-	public States State { get; set; }
+	public Guid Id { get; init; }
+	public required string Code { get; init; }
+	public required string Street { get; init; }
+	public required string Neighbourhood { get; init; }
+	public required string City { get; init; }
+	public required States State { get; init; }
+	public DateTime AddedAt { get; init; }
 	public IList<Address>? Addresses { get; set; }
-
-	public PostalCode()
-	{
-		Id = string.Empty;
-		Street = string.Empty;
-		Neighbourhood = string.Empty;
-		City = string.Empty;
-		State = States.EspíritoSanto;
-	}
 }

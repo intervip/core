@@ -1,19 +1,21 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Intervip.Core.Models;
 
 public class Address
 {
-	public int Id { get; set; }
-	public int? Number { get; set; }
-	public string Complement { get; set; }
+	public Guid Id { get; init; }
+	public required short? Number { get; init; }
+	public required string? Square { get; set; }
+	public required string? Lot { get; set; }
+	public required string? Complement { get; init; }
+	public DateTime AddedAt { get; init; }
 
 	[Required]
-	public PostalCode PostalCode { get; set; }
+	public required PostalCode PostalCode { get; set; }
 
-	public Address()
-	{
-		Complement = string.Empty;
-		PostalCode = new PostalCode();
-	}
+	[JsonIgnore]
+	public required Guid PostalCodeId { get; init; }
+	public IList<Lead>? Leads { get; set; }
 }
